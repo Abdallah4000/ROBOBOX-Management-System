@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ROBOBOX Management System</h1>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('products')">Products</button>
+            <button class="tab-button" onclick="switchTab('clients')">Clients</button>
+            <button class="tab-button" onclick="switchTab('projects')">Projects</button>
+        </div>
+
+        <div class="content">
+            <!-- PRODUCTS TAB -->
+            <div id="products" class="tab-content active">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Products</h2>
+                    <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
+                </div>
+
+                <div class="search-box">
+                    <input type="text" id="productSearch" placeholder="Search products..." onkeyup="filterProducts()">
+                </div>
+
+                <table class="table" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Company</th>
+                            <th>Price</th>
+                            <th>Image</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                    </tbody>
+                </table>
+                <div id="productsEmpty" class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <p>No products yet. Add one to get started!</p>
+                </div>
+            </div>
+
+            <!-- CLIENTS TAB -->
+            <div id="clients" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Clients</h2>
+                    <button class="btn btn-primary" onclick="openClientModal()">+ Add Client</button>
+                </div>
+
+                <div id="clientsList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <p>No clients yet. Add one to get started!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROJECTS TAB -->
+            <div id="projects" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>Projects</h2>
+                    <button class="btn btn-primary" onclick="openProjectModal()">+ New Project</button>
+                </div>
+
+                <table class="table" id="projectsTable">
+                    <thead>
+                        <tr>
+                            <th>Project Name</th>
+                            <th>Client Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectsTableBody">
+                    </tbody>
+                </table>
+                <div id="projectsEmpty" class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <p>No projects yet. Create one to get started!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Confirmation Modal - HIGHEST Z-INDEX -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Confirm Action</div>
+            <p id="confirmMessage" style="margin-bottom: 20px; color: #333; font-size: 1em;"></p>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteConfirmModal()">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Projects Modal -->
+    <div id="clientProjectsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div id="clientProjectsContent"></div>
+                <button type="button" class="btn btn-secondary" onclick="closeClientProjectsModal()">✕ Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="productModal" class="modal fullscreen">
+        <div class="modal-content fullscreen-content">
+            <div class="modal-header-fullscreen">
+                <h2>Add Product</h2>
+                <button type="button" class="btn btn-secondary" onclick="closeProductModal()">✕ Close</button>
+            </div>
+            <form onsubmit="saveProduct(event)" class="fullscreen-form">
+                <div class="form-group">
+                    <label class="required">Product Name</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <input type="text" id="productType">
+                </div>
+                <div class="form-group">
+                    <label>Company</label>
+                    <input type="text" id="productCompany">
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="number" id="productPrice" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Comment</label>
+                    <textarea id="productComment"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Image</label>
+                    <input type="file" id="productImage" accept="image/*" onchange="previewImage()">
+                    <div id="imagePreview" style="margin-top: 10px;"></div>
+                </div>
+                <div class="modal-footer-fullscreen">
+                    <button type="button" class="btn btn-secondary" onclick="closeProductModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Client Modal -->
+    <div id="clientModal" class="modal fullscreen">
+        <div class="modal-content fullscreen-content">
+            <div class="modal-header-fullscreen">
+                <h2>Add Client</h2>
+                <button type="button" class="btn btn-secondary" onclick="closeClientModal()">✕ Close</button>
+            </div>
+            <form onsubmit="saveClient(event)" class="fullscreen-form">
+                <div class="form-group">
+                    <label class="required">Client Name</label>
+                    <input type="text" id="clientName" required>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="clientAddress">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="clientPhone">
+                </div>
+                <div class="modal-footer-fullscreen">
+                    <button type="button" class="btn btn-secondary" onclick="closeClientModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Client</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Project Modal -->
+    <div id="projectModal" class="modal fullscreen">
+        <div class="modal-content fullscreen-content">
+            <div class="modal-header-fullscreen">
+                <h2>New Project</h2>
+                <button type="button" class="btn btn-secondary" onclick="closeProjectModal()">✕ Close</button>
+            </div>
+            <form onsubmit="saveProject(event)" class="fullscreen-form">
+                <div class="form-group">
+                    <label class="required">Project Name</label>
+                    <input type="text" id="projectName" required>
+                </div>
+                <div class="form-group">
+                    <label class="required">Select Client</label>
+                    <select id="projectClient" required>
+                        <option value="">-- Select a Client --</option>
+                    </select>
+                </div>
+                <div class="modal-footer-fullscreen">
+                    <button type="button" class="btn btn-secondary" onclick="closeProjectModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Project Details - Full Screen -->
+    <div id="projectDetailsModal" class="modal fullscreen active-fullscreen">
+        <div class="modal-content fullscreen-content">
+            <div id="projectDetailsContent" class="project-details-wrapper"></div>
+        </div>
+    </div>
+
+    <!-- Input Name Modal (for Level/Area) -->
+    <div id="inputNameModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Enter Name</div>
+            <form onsubmit="confirmInputName(event)">
+                <div class="form-group">
+                    <label id="inputNameLabel"></label>
+                    <input type="text" id="inputNameValue" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeInputNameModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Product Selection Modal (Swipeable) -->
+    <div id="productSelectionModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">Select Product</div>
+            <div class="search-box" style="margin-bottom: 20px;">
+                <input type="text" id="productSelectSearch" placeholder="Search products..." onkeyup="filterProductSelection()">
+            </div>
+            <div id="productSwipeContainer" class="swipe-container">
+                <div id="productList" class="product-list"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeProductSelectionModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Modal - Full Screen -->
+    <div id="summaryModal" class="modal fullscreen">
+        <div class="modal-content fullscreen-content">
+            <div class="modal-header-fullscreen">
+                <h2>Project Summary</h2>
+                <button type="button" class="btn btn-secondary" onclick="closeSummaryModal()">✕ Close</button>
+            </div>
+            <div id="summaryContent" class="summary-wrapper"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
